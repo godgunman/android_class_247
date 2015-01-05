@@ -55,7 +55,8 @@
         android:layout_below="@+id/checkBox1"
         android:text="TextView" />
 
-    <Spinner
+    <fragment
+        class="com.example.simpleui.fragment.SpinnerFragment"
         android:id="@+id/spinner1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
