@@ -15,11 +15,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 public class SpinnerFragment extends Fragment {
 
 	private Spinner spinner;
+	private ProgressBar progressBar;
 	
 	public SpinnerFragment() {
 	}
@@ -40,6 +42,8 @@ public class SpinnerFragment extends Fragment {
 						getActivity(),
 						android.R.layout.simple_spinner_item, ids);
 				spinner.setAdapter(adapter);
+				spinner.setVisibility(View.VISIBLE);
+				progressBar.setVisibility(View.GONE);
 			}
 		});
 	}
@@ -53,6 +57,7 @@ public class SpinnerFragment extends Fragment {
 			Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_spinner, container, false);
 		spinner = (Spinner) rootView.findViewById(R.id.spinner1);
+		progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar1);
 		
 		loadDeviceId();
 		
