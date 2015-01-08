@@ -60,6 +60,7 @@ public class MainActivity extends Activity {
 	private ImageView imageView;
 	private SpinnerFragment spinnerFragment;
 	private Uri photoUri;
+	private boolean hasPhoto;
 
 	OnClickListener onClickListener = new OnClickListener() {
 
@@ -97,7 +98,8 @@ public class MainActivity extends Activity {
 		checkBox = (CheckBox) findViewById(R.id.checkBox1);
 		textView = (TextView) findViewById(R.id.textView1);
 		imageView = (ImageView) findViewById(R.id.imageView1);
-
+		hasPhoto = false;
+		
 		textView.setText("device id: " + getDeviceId());
 
 		button.setOnClickListener(new OnClickListener() {
@@ -176,10 +178,9 @@ public class MainActivity extends Activity {
 		ParseObject messageObject = new ParseObject("Message");
 		messageObject.put("text", text);
 		messageObject.put("checkbox", checkBox.isChecked());
-		if (photoUri != null) {
+		if (hasPhoto) {
 			ParseFile file = new ParseFile("photo.png", Utils.uriToBytes(
 					getContentResolver(), photoUri));
-			ParseFile file = new ParseFile("photo.png", Utils.bitmapToBytes(bitmap));
 			messageObject.put("photo", file);
 		}
 		messageObject.saveInBackground(new SaveCallback() {
@@ -244,6 +245,7 @@ public class MainActivity extends Activity {
 				// bitmap = data.getParcelableExtra("data");
 				// imageView.setImageBitmap(bitmap);
 				imageView.setImageURI(photoUri);
+				hasPhoto = true;
 			}
 		}
 	}
