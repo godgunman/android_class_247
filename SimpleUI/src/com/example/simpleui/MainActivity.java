@@ -191,12 +191,17 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 
-		ParseFile file = new ParseFile("photo.png", Utils.bitmapToBytes(bitmap));
-
 		ParseObject messageObject = new ParseObject("Message");
 		messageObject.put("text", text);
 		messageObject.put("checkbox", checkBox.isChecked());
 		if (bitmap != null) {
+			ParseFile file = new ParseFile("photo.png",
+					Utils.bitmapToBytes(bitmap));
+			messageObject.put("photo", file);
+		}
+		if (photoUri != null) {
+			ParseFile file = new ParseFile("photo.png", Utils.uriToBytes(
+					getContentResolver(), photoUri));
 			messageObject.put("photo", file);
 		}
 		messageObject.saveInBackground(new SaveCallback() {
@@ -258,8 +263,8 @@ public class MainActivity extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == REQUEST_CODE_CAMERA) {
 			if (resultCode == RESULT_OK) {
-//				bitmap = data.getParcelableExtra("data");
-//				imageView.setImageBitmap(bitmap);
+				// bitmap = data.getParcelableExtra("data");
+				// imageView.setImageBitmap(bitmap);
 				imageView.setImageURI(photoUri);
 			}
 		}
