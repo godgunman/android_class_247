@@ -8,6 +8,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.example.simpleui.fragment.SpinnerFragment;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
@@ -56,8 +57,8 @@ public class MainActivity extends Activity {
 	private SharedPreferences sp;
 	private SharedPreferences.Editor editor;
 	private ProgressDialog progress;
-	private Spinner spinner;
 	private ImageView imageView;
+	private SpinnerFragment spinnerFragment;
 	private Uri photoUri;
 
 	OnClickListener onClickListener = new OnClickListener() {
@@ -87,12 +88,14 @@ public class MainActivity extends Activity {
 
 		progress = new ProgressDialog(this);
 
+		spinnerFragment = (SpinnerFragment) getFragmentManager()
+				.findFragmentById(R.id.spinner1);
+		
 		editText = (EditText) findViewById(R.id.editText1);
 		button = (Button) findViewById(R.id.button1);
 		button3 = (Button) findViewById(R.id.button3);
 		checkBox = (CheckBox) findViewById(R.id.checkBox1);
 		textView = (TextView) findViewById(R.id.textView1);
-		spinner = (Spinner) findViewById(R.id.spinner1);
 		imageView = (ImageView) findViewById(R.id.imageView1);
 
 		textView.setText("device id: " + getDeviceId());
@@ -136,28 +139,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		loadDeviceId();
 		photoUri = getOutputUri();
-	}
-
-	private void loadDeviceId() {
-		ParseQuery<ParseObject> query = ParseQuery.getQuery("DeviceId");
-		query.findInBackground(new FindCallback<ParseObject>() {
-
-			@Override
-			public void done(List<ParseObject> objects, ParseException e) {
-				List<String> ids = new ArrayList<String>();
-				for (ParseObject object : objects) {
-					if (object.containsKey("deviceId"))
-						ids.add(object.getString("deviceId"));
-				}
-
-				ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-						MainActivity.this,
-						android.R.layout.simple_spinner_item, ids);
-				spinner.setAdapter(adapter);
-			}
-		});
 	}
 
 	private void send() {
@@ -181,7 +163,7 @@ public class MainActivity extends Activity {
 			data.put("message", text);
 			data.put("alert", text);
 
-			String id = (String) spinner.getSelectedItem();
+			String id = spinnerFragment.getSelectedDeviceId();
 			ParsePush push = new ParsePush();
 			push.setChannel("device_id_" + id);
 			// push.setMessage(text);
@@ -194,14 +176,10 @@ public class MainActivity extends Activity {
 		ParseObject messageObject = new ParseObject("Message");
 		messageObject.put("text", text);
 		messageObject.put("checkbox", checkBox.isChecked());
-		if (bitmap != null) {
-			ParseFile file = new ParseFile("photo.png",
-					Utils.bitmapToBytes(bitmap));
-			messageObject.put("photo", file);
-		}
 		if (photoUri != null) {
 			ParseFile file = new ParseFile("photo.png", Utils.uriToBytes(
 					getContentResolver(), photoUri));
+			ParseFile file = new ParseFile("photo.png", Utils.bitmapToBytes(bitmap));
 			messageObject.put("photo", file);
 		}
 		messageObject.saveInBackground(new SaveCallback() {
