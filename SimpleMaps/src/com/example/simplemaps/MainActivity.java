@@ -7,6 +7,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
@@ -17,6 +21,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,11 +35,14 @@ public class MainActivity extends Activity {
 	private final static LatLng NTU_POSITION = new LatLng(25.017317, 121.539586);
 	private final static LatLng YANG_MING_SHAN = new LatLng(25.194367,
 			121.560957);
+	private static final String CLIENT_ID = "S1LC42PP1ZRDU5VWZIIZBIVOVACP4DXX0R5SVSXBQHJS3UP1";
+	private static final String CLIENT_SECRET = "FCB500VP5QGJEH3GYNHRICNMLZMWXLEOOM0FK30ET5RHTIUC";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		disableStrictMode();
 
 		mapFragment = (MapFragment) getFragmentManager().findFragmentById(
 				R.id.map);
@@ -53,14 +61,45 @@ public class MainActivity extends Activity {
 				return false;
 			}
 		});
-		
-		String result = fetch("https://api.foursquare.com/v2/venues/40a55d80f964a52020f31ee3");
-		Log.d("debug", result);
+
+		String queryUrl = String
+				.format("https://api.foursquare.com/v2/venues/search?client_id=%s&client_secret=%s&v=20130815&ll=%s&query=%s",
+						CLIENT_ID, CLIENT_SECRET, "25.017317,121.539586",
+						"seafood");
+		String result = fetch(queryUrl);
+
+		try {
+			JSONObject object = new JSONObject(result);
+			JSONArray venuse = object.getJSONObject("response").getJSONArray(
+					"venues");
+			for (int i = 0; i < venuse.length(); i++) {
+				String name = venuse.getJSONObject(i).getString("name");
+				double lat = venuse.getJSONObject(i).getJSONObject("location")
+						.getDouble("lat");
+				double lng = venuse.getJSONObject(i).getJSONObject("location")
+						.getDouble("lng");
+
+				MarkerOptions place = new MarkerOptions().position(
+						new LatLng(lat, lng)).title(name);
+				googleMap.addMarker(place);
+			}
+
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	public void goToYangMingShan(View view) {
 		googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(YANG_MING_SHAN,
 				15));
+	}
+
+	private void disableStrictMode() {
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+				.permitAll().build();
+		StrictMode.setThreadPolicy(policy);
 	}
 
 	private String fetch(String urlString) {
