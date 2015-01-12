@@ -21,6 +21,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -43,6 +48,8 @@ public class MainActivity extends Activity {
 	private static final String CLIENT_ID = "S1LC42PP1ZRDU5VWZIIZBIVOVACP4DXX0R5SVSXBQHJS3UP1";
 	private static final String CLIENT_SECRET = "FCB500VP5QGJEH3GYNHRICNMLZMWXLEOOM0FK30ET5RHTIUC";
 
+	private String currentLocation = "25.017317,121.539586";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -69,7 +76,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-
+		initLocationManager();
 	}
 
 	public void search(View view) {
@@ -78,7 +85,7 @@ public class MainActivity extends Activity {
 	
 		String queryUrl = String
 				.format("https://api.foursquare.com/v2/venues/search?client_id=%s&client_secret=%s&v=20130815&ll=%s&query=%s",
-						CLIENT_ID, CLIENT_SECRET, "25.017317,121.539586",
+						CLIENT_ID, CLIENT_SECRET, currentLocation,
 						searchString);
 
 		task.execute(queryUrl);
@@ -89,6 +96,27 @@ public class MainActivity extends Activity {
 				15));
 	}
 
+	private void initLocationManager() {
+		LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		
+		Criteria criteria = new Criteria();
+		String provider = lm.getBestProvider(criteria, true);
+		updateGoogleMap(lm.getLastKnownLocation(provider));
+	
+		lm.requestLocationUpdates(provider, 1000, 1, locationListener);
+		
+		updateGoogleMap(googleMap.getMyLocation());		
+	}
+	
+	private void updateGoogleMap(Location location) {
+		if (location == null) return;
+		
+		currentLocation = location.getLatitude() + "," + location.getLongitude();
+		
+		LatLng newLocation = new LatLng(location.getLatitude(), location.getLongitude());
+		googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15));
+	}
+	
 	private void disableStrictMode() {
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build();
@@ -180,5 +208,32 @@ public class MainActivity extends Activity {
 			progress.dismiss();
 		};
 		
+	};
+	
+	private LocationListener locationListener = new LocationListener() {
+		
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void onProviderEnabled(String provider) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void onProviderDisabled(String provider) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void onLocationChanged(Location location) {
+			updateGoogleMap(location);
+		}
+
 	};
 }
