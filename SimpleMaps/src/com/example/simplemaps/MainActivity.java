@@ -28,12 +28,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
 	private MapFragment mapFragment;
 	private GoogleMap googleMap;
+	private EditText editText;
+	
 	private final static LatLng NTU_POSITION = new LatLng(25.017317, 121.539586);
 	private final static LatLng YANG_MING_SHAN = new LatLng(25.194367,
 			121.560957);
@@ -50,6 +53,8 @@ public class MainActivity extends Activity {
 				R.id.map);
 		googleMap = mapFragment.getMap();
 
+		editText = (EditText) findViewById(R.id.editText1);
+		
 		MarkerOptions markerOption = new MarkerOptions().position(NTU_POSITION)
 				.title("NTU");
 		googleMap.addMarker(markerOption);
@@ -64,14 +69,21 @@ public class MainActivity extends Activity {
 			}
 		});
 
+
+	}
+
+	public void search(View view) {
+		
+		String searchString = editText.getText().toString();
+	
 		String queryUrl = String
 				.format("https://api.foursquare.com/v2/venues/search?client_id=%s&client_secret=%s&v=20130815&ll=%s&query=%s",
 						CLIENT_ID, CLIENT_SECRET, "25.017317,121.539586",
-						"seafood");
+						searchString);
 
 		task.execute(queryUrl);
 	}
-
+	
 	public void goToYangMingShan(View view) {
 		googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(YANG_MING_SHAN,
 				15));
