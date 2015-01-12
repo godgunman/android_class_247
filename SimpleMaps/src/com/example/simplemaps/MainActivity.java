@@ -20,6 +20,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
@@ -42,7 +44,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		disableStrictMode();
+//		disableStrictMode();
 
 		mapFragment = (MapFragment) getFragmentManager().findFragmentById(
 				R.id.map);
@@ -66,29 +68,8 @@ public class MainActivity extends Activity {
 				.format("https://api.foursquare.com/v2/venues/search?client_id=%s&client_secret=%s&v=20130815&ll=%s&query=%s",
 						CLIENT_ID, CLIENT_SECRET, "25.017317,121.539586",
 						"seafood");
-		String result = fetch(queryUrl);
 
-		try {
-			JSONObject object = new JSONObject(result);
-			JSONArray venuse = object.getJSONObject("response").getJSONArray(
-					"venues");
-			for (int i = 0; i < venuse.length(); i++) {
-				String name = venuse.getJSONObject(i).getString("name");
-				double lat = venuse.getJSONObject(i).getJSONObject("location")
-						.getDouble("lat");
-				double lng = venuse.getJSONObject(i).getJSONObject("location")
-						.getDouble("lng");
-
-				MarkerOptions place = new MarkerOptions().position(
-						new LatLng(lat, lng)).title(name);
-				googleMap.addMarker(place);
-			}
-
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		task.execute(queryUrl);
 	}
 
 	public void goToYangMingShan(View view) {
@@ -144,4 +125,48 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	
+	private AsyncTask<String, Void, String> task = new AsyncTask<String, Void, String> () {
+
+		private ProgressDialog progress;
+		
+		@Override
+		protected void onPreExecute() {
+			progress = new ProgressDialog(MainActivity.this);
+			progress.setTitle("Loading");
+			progress.show();
+		};
+		
+		@Override
+		protected String doInBackground(String... params) {
+			return fetch(params[0]);
+		}
+		
+		@Override
+		protected void onPostExecute(String result) {			
+			try {
+				JSONObject object = new JSONObject(result);
+				JSONArray venuse = object.getJSONObject("response").getJSONArray(
+						"venues");
+				for (int i = 0; i < venuse.length(); i++) {
+					String name = venuse.getJSONObject(i).getString("name");
+					double lat = venuse.getJSONObject(i).getJSONObject("location")
+							.getDouble("lat");
+					double lng = venuse.getJSONObject(i).getJSONObject("location")
+							.getDouble("lng");
+
+					MarkerOptions place = new MarkerOptions().position(
+							new LatLng(lat, lng)).title(name);
+					googleMap.addMarker(place);
+				}
+
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			progress.dismiss();
+		};
+		
+	};
 }
